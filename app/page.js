@@ -212,6 +212,7 @@ export default function Home() {
   const [role, setRole] = useState("admin");
   const [filters, setFilters] = useState({ status: '', type: '', assignee: '', tag: '' });
   const [pagination, setPagination] = useState({ limit: 50, offset: 0, total: 0 });
+  const [sort, setSort] = useState('updated_desc');
 
   useEffect(() => {
     async function load() {
@@ -232,10 +233,9 @@ export default function Home() {
         const nextColumns = statusIds.map((id) => ({ id, title: statusTitles[id] || id }));
         const mapped = {};
         for (const col of nextColumns) mapped[col.id] = [];
-        for (const it of (data.items || [])) {
+        const itemsList = (data.items || []).map((it) => {
           const status = it.status || "todo";
-          if (!mapped[status]) mapped[status] = [];
-          mapped[status].push({
+          return {
             id: it.id,
             type: it.type || "story",
             title: it.title || "(sans titre)",
@@ -255,7 +255,23 @@ export default function Home() {
               updated: (it.updatedAt || "").slice(0, 10),
             },
             attachments: [],
-          });
+          };
+        });
+
+        const priorityRank = { low: 1, med: 2, high: 3, critical: 4 };
+        const statusOrder = new Map(nextColumns.map((c, idx) => [c.id, idx]));
+        itemsList.sort((a, b) => {
+          if (sort === 'priority_desc') return (priorityRank[b.priority] || 0) - (priorityRank[a.priority] || 0);
+          if (sort === 'priority_asc') return (priorityRank[a.priority] || 0) - (priorityRank[b.priority] || 0);
+          if (sort === 'status') return (statusOrder.get(a.status) || 0) - (statusOrder.get(b.status) || 0);
+          if (sort === 'updated_asc') return (a.dates.updated || '').localeCompare(b.dates.updated || '');
+          // updated_desc default
+          return (b.dates.updated || '').localeCompare(a.dates.updated || '');
+        });
+
+        for (const item of itemsList) {
+          if (!mapped[item.status]) mapped[item.status] = [];
+          mapped[item.status].push(item);
         }
         setColumns(nextColumns);
         setItemsByColumn(mapped);
@@ -264,7 +280,7 @@ export default function Home() {
       }
     }
     load();
-  }, [role, filters, pagination.limit, pagination.offset]);
+  }, [role, filters, pagination.limit, pagination.offset, sort]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
