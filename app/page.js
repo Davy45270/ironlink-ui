@@ -132,7 +132,7 @@ const initialItems = {
       labels: ["API"],
       qa: true,
       rssi: true,
-      checklist: [{ text: "Endpoint /api/items", done: true }],
+      checklist: [{ text: "Endpoint /v1/items", done: true }],
       comments: [{ author: "Dev Back", text: "Seed OK", at: "2026-02-03" }],
       links: [],
       dates: { created: "2026-02-01", due: "2026-02-03", updated: "2026-02-03" },
@@ -197,6 +197,7 @@ function Column({ id, title, items, onOpen, dragDisabled }) {
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   const [itemsByColumn, setItemsByColumn] = useState(initialItems);
@@ -213,7 +214,7 @@ export default function Home() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("http://192.168.1.230:13000/api/items", { headers: { "x-role": role } });
+        const res = await fetch("http://192.168.1.230:13000/v1/items", { headers: { "x-role": role } });
         if (!res.ok) return;
         const data = await res.json();
         const statusTitles = { backlog: "Backlog", todo: "À faire", doing: "En cours", review: "Revue", done: "Terminé" };

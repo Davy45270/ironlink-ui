@@ -1,4 +1,6 @@
 ui:
-  - "app/**"
+  - changed-files:
+      - any-glob-to-any-file: "app/**"
 ci:
-  - ".github/**"
+  - changed-files:
+      - any-glob-to-any-file: ".github/**"
