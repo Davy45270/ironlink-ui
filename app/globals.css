@@ -49,3 +49,7 @@ a {
 .paginationRow select{padding:6px 8px;border:1px solid #3333;border-radius:6px;background:#0b0b0b;color:#eaeaea;}
 .paginationRow button{padding:6px 10px;border-radius:6px;border:1px solid #3333;background:#1a1a1a;color:#eaeaea;cursor:pointer;}
 .paginationRow button:disabled{opacity:0.5;cursor:not-allowed;}
+
+.primaryBtn{padding:6px 10px;border-radius:6px;border:1px solid #3333;background:#2b6cb0;color:#fff;cursor:pointer;margin-left:8px;}
+.drawerActions{display:flex;gap:8px;align-items:center;}
+.dangerBtn{padding:6px 10px;border-radius:6px;border:1px solid #6633;background:#a11;color:#fff;cursor:pointer;}

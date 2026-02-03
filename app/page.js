@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DndContext, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -213,6 +213,7 @@ export default function Home() {
   const [filters, setFilters] = useState({ status: '', type: '', assignee: '', tag: '' });
   const [pagination, setPagination] = useState({ limit: 50, offset: 0, total: 0 });
   const [sort, setSort] = useState('updated_desc');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -280,9 +281,61 @@ export default function Home() {
       }
     }
     load();
-  }, [role, filters, pagination.limit, pagination.offset, sort]);
+  }, [role, filters, pagination.limit, pagination.offset, sort, reloadKey]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const saveTimers = useRef(new Map());
+  const apiBase = 'http://192.168.1.230:13000';
+
+  async function apiPatchItem(itemId, patch) {
+    const payload = { ...patch };
+    if ('labels' in payload) {
+      payload.tags = payload.labels;
+      delete payload.labels;
+    }
+    try {
+      await fetch(`${apiBase}/v1/items/${itemId}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', 'x-role': role },
+        body: JSON.stringify(payload),
+      });
+    } catch (e) {
+      // ignore for now
+    }
+  }
+
+  function scheduleSave(itemId, patch) {
+    const timers = saveTimers.current;
+    if (timers.has(itemId)) clearTimeout(timers.get(itemId));
+    const t = setTimeout(() => apiPatchItem(itemId, patch), 400);
+    timers.set(itemId, t);
+  }
+
+  async function apiDeleteItem(itemId) {
+    try {
+      await fetch(`${apiBase}/v1/items/${itemId}`, {
+        method: 'DELETE',
+        headers: { 'x-role': role },
+      });
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  async function apiCreateItem() {
+    try {
+      const res = await fetch(`${apiBase}/v1/items`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-role': role },
+        body: JSON.stringify({ title: 'Nouvelle carte', status: 'todo', type: 'story' }),
+      });
+      const created = await res.json();
+      setReloadKey((k) => k + 1);
+      if (created?.id) setSelected(created);
+    } catch (e) {
+      // ignore
+    }
+  }
 
   function findColumnByItemId(itemId) {
     return columns.find((col) => (itemsByColumn[col.id] || []).some((i) => i.id === itemId));
@@ -299,6 +352,7 @@ export default function Home() {
     nextItems[idx] = updated;
     setItemsByColumn({ ...itemsByColumn, [col.id]: nextItems });
     setSelected(updated);
+    scheduleSave(itemId, patch);
   }
 
   function onDragEnd(event) {
@@ -338,6 +392,7 @@ export default function Home() {
       [activeCol.id]: nextActive,
       [overCol.id]: nextOver,
     });
+    apiPatchItem(activeId, { status: overCol.id });
   }
 
   const canEdit = can(role, "cards:edit");
@@ -423,7 +478,10 @@ export default function Home() {
         <aside className="drawer">
           <div className="drawerHeader">
             <div className={`badge type ${selected.type}`}>{typeLabel[selected.type]}</div>
-            <button className="close" onClick={() => setSelected(null)}>✕</button>
+            <div className="drawerActions">
+              {canEdit && <button className="dangerBtn" onClick={() => { apiDeleteItem(selected.id); setSelected(null); setReloadKey((k) => k + 1); }}>Supprimer</button>}
+              <button className="close" onClick={() => setSelected(null)}>✕</button>
+            </div>
           </div>
 
           {canEdit && editing === "title" ? (
