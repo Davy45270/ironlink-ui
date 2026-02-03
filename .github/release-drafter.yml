@@ -1,5 +1,8 @@
 name-template: "v$NEXT_PATCH_VERSION"
 tag-template: "v$NEXT_PATCH_VERSION"
+template: |
+  ## Changes
+  $CHANGES
 change-template: "- $TITLE (#$NUMBER)"
 no-changes-template: "- No changes"
 categories:
