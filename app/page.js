@@ -211,6 +211,7 @@ export default function Home() {
   const [newAttachmentUrl, setNewAttachmentUrl] = useState("");
   const [role, setRole] = useState("admin");
   const [filters, setFilters] = useState({ status: '', type: '', assignee: '', tag: '' });
+  const [pagination, setPagination] = useState({ limit: 50, offset: 0, total: 0 });
 
   useEffect(() => {
     async function load() {
@@ -220,6 +221,8 @@ export default function Home() {
         if (filters.type) params.set('type', filters.type);
         if (filters.assignee) params.set('assignee', filters.assignee);
         if (filters.tag) params.set('tag', filters.tag);
+        params.set('limit', String(pagination.limit));
+        params.set('offset', String(pagination.offset));
         const url = `http://192.168.1.230:13000/v1/items${params.toString() ? '?' + params.toString() : ''}`;
         const res = await fetch(url, { headers: { "x-role": role } });
         if (!res.ok) return;
@@ -261,7 +264,7 @@ export default function Home() {
       }
     }
     load();
-  }, [role, filters]);
+  }, [role, filters, pagination.limit, pagination.offset]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -329,6 +332,17 @@ export default function Home() {
       <header className="header">
         <h1>IronLink — Kanban (MVP)</h1>
         <div className="filtersRow">
+        <div className="paginationRow">
+          <span>Items: {pagination.total}</span>
+          <select value={pagination.limit} onChange={(e) => setPagination({ ...pagination, limit: Number(e.target.value), offset: 0 })}>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <button disabled={pagination.offset === 0} onClick={() => setPagination({ ...pagination, offset: Math.max(0, pagination.offset - pagination.limit) })}>Prev</button>
+          <button disabled={pagination.offset + pagination.limit >= pagination.total} onClick={() => setPagination({ ...pagination, offset: pagination.offset + pagination.limit })}>Next</button>
+        </div>
+
           <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
             <option value="">Status (tous)</option>
             <option value="backlog">Backlog</option>
