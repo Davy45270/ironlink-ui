@@ -40,3 +40,7 @@ a {
     color-scheme: dark;
   }
 }
+
+.filtersRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 12px;}
+.filtersRow select,.filtersRow input{padding:6px 8px;border:1px solid #3333;border-radius:6px;background:#0b0b0b;color:#eaeaea;}
+.filtersRow button{padding:6px 10px;border-radius:6px;border:1px solid #3333;background:#1a1a1a;color:#eaeaea;cursor:pointer;}
