@@ -197,6 +197,7 @@ function Column({ id, title, items, onOpen, dragDisabled }) {
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   const [itemsByColumn, setItemsByColumn] = useState(initialItems);
