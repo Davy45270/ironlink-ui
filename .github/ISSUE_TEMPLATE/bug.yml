@@ -1,0 +1,20 @@
+name: "🐛 Bug"
+description: "Signaler un bug"
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Étapes pour reproduire
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true

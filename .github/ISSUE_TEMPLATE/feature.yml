@@ -1,0 +1,10 @@
+name: '✨ Feature'
+description: 'Demande d evolution'
+labels: ['feature']
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Objectif
+    validations:
+      required: true
