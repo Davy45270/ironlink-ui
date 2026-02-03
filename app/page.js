@@ -210,11 +210,18 @@ export default function Home() {
   const [newAttachmentName, setNewAttachmentName] = useState("");
   const [newAttachmentUrl, setNewAttachmentUrl] = useState("");
   const [role, setRole] = useState("admin");
+  const [filters, setFilters] = useState({ status: '', type: '', assignee: '', tag: '' });
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("http://192.168.1.230:13000/v1/items", { headers: { "x-role": role } });
+        const params = new URLSearchParams();
+        if (filters.status) params.set('status', filters.status);
+        if (filters.type) params.set('type', filters.type);
+        if (filters.assignee) params.set('assignee', filters.assignee);
+        if (filters.tag) params.set('tag', filters.tag);
+        const url = `http://192.168.1.230:13000/v1/items${params.toString() ? '?' + params.toString() : ''}`;
+        const res = await fetch(url, { headers: { "x-role": role } });
         if (!res.ok) return;
         const data = await res.json();
         const statusTitles = { backlog: "Backlog", todo: "À faire", doing: "En cours", review: "Revue", done: "Terminé" };
@@ -254,7 +261,7 @@ export default function Home() {
       }
     }
     load();
-  }, [role]);
+  }, [role, filters]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -321,6 +328,26 @@ export default function Home() {
     <main className="page">
       <header className="header">
         <h1>IronLink — Kanban (MVP)</h1>
+        <div className="filtersRow">
+          <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
+            <option value="">Status (tous)</option>
+            <option value="backlog">Backlog</option>
+            <option value="todo">À faire</option>
+            <option value="doing">En cours</option>
+            <option value="review">Revue</option>
+            <option value="done">Terminé</option>
+          </select>
+          <select value={filters.type} onChange={(e) => setFilters({ ...filters, type: e.target.value })}>
+            <option value="">Type (tous)</option>
+            <option value="epic">Epic</option>
+            <option value="story">Story</option>
+            <option value="task">Tâche</option>
+            <option value="bug">Bug</option>
+          </select>
+          <input placeholder="Assignee" value={filters.assignee} onChange={(e) => setFilters({ ...filters, assignee: e.target.value })} />
+          <input placeholder="Tag" value={filters.tag} onChange={(e) => setFilters({ ...filters, tag: e.target.value })} />
+          <button onClick={() => setFilters({ status: '', type: '', assignee: '', tag: '' })}>Reset</button>
+        </div>
         <div className="subtitle">Epic → Story → Tâche</div>
         <div className="role">
           <label>Rôle:</label>
